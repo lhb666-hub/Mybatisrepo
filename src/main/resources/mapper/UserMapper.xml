@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace 必须与 Mapper 接口的全限定名一致，MyBatis 靠它把接口方法和这里的 SQL 绑定 -->
+<mapper namespace="com.demo.mapper.UserMapper">
+
+    <!-- 查询所有用户；resultType 用别名 User（在 mybatis-config.xml 里配置了） -->
+    <select id="selectAll" resultType="User">
+        SELECT * FROM `user`
+    </select>
+
+    <!-- 按主键查询；#{id} 是参数占位符（预编译，防 SQL 注入），对应接口方法的参数 -->
+    <select id="selectById" parameterType="int" resultType="User">
+        SELECT * FROM `user` WHERE id = #{id}
+    </select>
+
+    <!-- 新增用户；useGeneratedKeys 开启获取自增主键，keyProperty 指定回填到 User 的 id 属性 -->
+    <insert id="insert" parameterType="User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user` (username, password, email)
+        VALUES (#{username}, #{password}, #{email})
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="update" parameterType="User">
+        UPDATE `user`
+        SET username = #{username}, password = #{password}, email = #{email}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 按主键删除 -->
+    <delete id="deleteById" parameterType="int">
+        DELETE FROM `user` WHERE id = #{id}
+    </delete>
+
+    <!-- 按用户名精确查询 -->
+    <select id="selectByUsername" parameterType="string" resultType="User">
+        SELECT * FROM `user` WHERE username = #{username}
+    </select>
+
+    <!-- 按用户名模糊查询；用 CONCAT 拼接 % 实现 LIKE -->
+    <select id="findByUsernameLike" parameterType="string" resultType="User">
+        SELECT * FROM `user` WHERE username LIKE CONCAT('%', #{keyword}, '%')
+    </select>
+
+</mapper>
