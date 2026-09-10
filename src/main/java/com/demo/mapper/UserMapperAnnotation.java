@@ -4,6 +4,7 @@ import com.demo.entity.User;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Options;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
@@ -32,6 +33,11 @@ public interface UserMapperAnnotation {
     // 按用户名模糊查询
     @Select("SELECT * FROM `user` WHERE username LIKE CONCAT('%', #{keyword}, '%')")
     List<User> findByUsernameLike(String keyword);
+
+    // 多参数查询：用 @Param 给每个参数命名，SQL 里用 #{username} / #{email} 引用
+    // 注意：多个参数时若不加 @Param，MyBatis 只能用 #{param1}、#{arg0} 这种位置名，可读性差
+    @Select("SELECT * FROM `user` WHERE username = #{username} AND email = #{email}")
+    User selectByUsernameAndEmail(@Param("username") String username, @Param("email") String email);
 
     // 新增用户；@Options 开启获取自增主键并回填到 user.id
     @Insert("INSERT INTO `user` (username, password, email) VALUES (#{username}, #{password}, #{email})")

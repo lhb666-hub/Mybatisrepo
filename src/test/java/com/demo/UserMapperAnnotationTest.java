@@ -155,4 +155,29 @@ public class UserMapperAnnotationTest {
             sqlSession.close();
         }
     }
+
+    @Test
+    public void testSelectByUsernameAndEmail() {
+        System.out.println("========== 注解方式：多参数查询（@Param）==========");
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        try {
+            UserMapperAnnotation mapper = sqlSession.getMapper(UserMapperAnnotation.class);
+            // 先插入临时数据，再用 username + email 两个参数查询，避免依赖固定数据
+            User user = new User();
+            user.setUsername("注解多参用户");
+            user.setPassword("123456");
+            user.setEmail("multi-anno@qq.com");
+            mapper.insert(user);
+            sqlSession.commit();
+
+            User result = mapper.selectByUsernameAndEmail("注解多参用户", "multi-anno@qq.com");
+            System.out.println(result);
+
+            // 清理
+            mapper.deleteById(user.getId());
+            sqlSession.commit();
+        } finally {
+            sqlSession.close();
+        }
+    }
 }

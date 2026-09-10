@@ -43,4 +43,10 @@
         SELECT * FROM `user` WHERE username LIKE CONCAT('%', #{keyword}, '%')
     </select>
 
+    <!-- 多参数查询：接口方法用 @Param("username")/@Param("email") 给参数命名，
+         这里直接用 #{username} / #{email} 引用；多个参数时不能写 parameterType -->
+    <select id="selectByUsernameAndEmail" resultType="User">
+        SELECT * FROM `user` WHERE username = #{username} AND email = #{email}
+    </select>
+
 </mapper>

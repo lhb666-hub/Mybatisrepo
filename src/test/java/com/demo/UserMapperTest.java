@@ -151,4 +151,29 @@ public class UserMapperTest {
         }
         sqlSession.close();
     }
+
+    @Test
+    public void testSelectByUsernameAndEmail() {
+        System.out.println("========== 测试多参数查询（@Param）==========");
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        try {
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            // 先插入临时数据，再用 username + email 两个参数精确查询，避免依赖固定数据
+            User user = new User();
+            user.setUsername("多参查询用户");
+            user.setPassword("123456");
+            user.setEmail("multi@qq.com");
+            userMapper.insert(user);
+            sqlSession.commit();
+
+            User result = userMapper.selectByUsernameAndEmail("多参查询用户", "multi@qq.com");
+            System.out.println(result);
+
+            // 清理
+            userMapper.deleteById(user.getId());
+            sqlSession.commit();
+        } finally {
+            sqlSession.close();
+        }
+    }
 }

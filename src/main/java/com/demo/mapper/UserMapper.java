@@ -1,6 +1,7 @@
 package com.demo.mapper;
 
 import com.demo.entity.User;
+import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
@@ -29,4 +30,7 @@ public interface UserMapper {
 
     // 按用户名模糊查询
     List<User> findByUsernameLike(String keyword);
+
+    // 多参数查询：用 @Param 给参数命名，XML 里用 #{username} / #{email} 引用
+    User selectByUsernameAndEmail(@Param("username") String username, @Param("email") String email);
 }
