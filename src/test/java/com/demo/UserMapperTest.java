@@ -31,24 +31,16 @@ public class UserMapperTest {
     // 你教材里的 @Before 是 JUnit 4 写法，JUnit 5 对应的是 @BeforeEach
     @BeforeEach
     public void init() throws Exception {
-        // 读取 mybatis-config.xml（里面包含数据库连接 + Mapper 文件）
         InputStream is = Resources.getResourceAsStream("mybatis-config.xml");
-        // 构建连接工厂
         sqlSessionFactory = new SqlSessionFactoryBuilder().build(is);
     }
 
     @Test
     public void testFindAll() {
         System.out.println("========== 测试查询所有用户 ==========");
-        // 打开一个连接会话，相当于 Connection
         SqlSession sqlSession = sqlSessionFactory.openSession();
-
-        // 方式一：按 statement id 直接调用 XML 中声明的 SQL（namespace + 标签 id）
+        // 方式一：按 statement id 直接调用 XML 中声明的 SQL
         List<User> users = sqlSession.selectList("com.demo.mapper.UserMapper.selectAll");
-
-        // 方式二：通过接口代理调用（与上面等价）
-        // List<User> users = sqlSession.getMapper(UserMapper.class).selectAll();
-
         for (User user : users) {
             System.out.println(user);
         }
@@ -79,41 +71,73 @@ public class UserMapperTest {
     public void testAddUser() {
         System.out.println("========== 测试添加用户 ==========");
         SqlSession sqlSession = sqlSessionFactory.openSession();
-        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
-        User user = new User();
-        user.setUsername("测试用户");
-        user.setPassword("123456");
-        user.setEmail("test@qq.com");
-        int rows = userMapper.insert(user);
-        System.out.println("影响行数：" + rows);
-        System.out.println("自增主键：" + user.getId());
-        sqlSession.commit(); // 写操作必须 commit 才会真正提交
-        sqlSession.close();
+        try {
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            User user = new User();
+            user.setUsername("测试用户");
+            user.setPassword("123456");
+            user.setEmail("test@qq.com");
+            int rows = userMapper.insert(user);
+            sqlSession.commit();
+            System.out.println("影响行数：" + rows);
+            System.out.println("自增主键：" + user.getId());
+
+            // 清理，避免重复运行时唯一约束冲突
+            userMapper.deleteById(user.getId());
+            sqlSession.commit();
+        } finally {
+            sqlSession.close();
+        }
     }
 
     @Test
     public void testUpdateUser() {
         System.out.println("========== 测试更新用户 ==========");
         SqlSession sqlSession = sqlSessionFactory.openSession();
-        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
-        User user = userMapper.selectById(1);
-        user.setUsername("更新后的用户名");
-        user.setEmail("update@qq.com");
-        int rows = userMapper.update(user);
-        System.out.println("影响行数：" + rows);
-        sqlSession.commit();
-        sqlSession.close();
+        try {
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            // 先插入一条临时数据，再更新它，避免依赖固定 id
+            User user = new User();
+            user.setUsername("临时更新用户");
+            user.setPassword("123456");
+            user.setEmail("update-before@qq.com");
+            userMapper.insert(user);
+            sqlSession.commit();
+
+            user.setUsername("更新后的用户名");
+            user.setEmail("update@qq.com");
+            int rows = userMapper.update(user);
+            sqlSession.commit();
+            System.out.println("影响行数：" + rows);
+
+            // 清理
+            userMapper.deleteById(user.getId());
+            sqlSession.commit();
+        } finally {
+            sqlSession.close();
+        }
     }
 
     @Test
     public void testDeleteUser() {
         System.out.println("========== 测试删除用户 ==========");
         SqlSession sqlSession = sqlSessionFactory.openSession();
-        UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
-        int rows = userMapper.deleteById(1);
-        System.out.println("影响行数：" + rows);
-        sqlSession.commit();
-        sqlSession.close();
+        try {
+            UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+            // 先插入一条临时数据，再删除它
+            User user = new User();
+            user.setUsername("临时删除用户");
+            user.setPassword("123456");
+            user.setEmail("delete@qq.com");
+            userMapper.insert(user);
+            sqlSession.commit();
+
+            int rows = userMapper.deleteById(user.getId());
+            sqlSession.commit();
+            System.out.println("影响行数：" + rows);
+        } finally {
+            sqlSession.close();
+        }
     }
 
     @Test

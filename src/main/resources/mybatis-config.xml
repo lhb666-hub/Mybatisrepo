@@ -12,8 +12,8 @@
     <settings>
         <!-- 开启下划线转驼峰：列名 created_at 自动映射到 Java 属性 createdAt -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
-        <!-- 把执行的 SQL 打印到控制台，便于调试 -->
-        <setting name="logImpl" value="STDOUT_LOGGING"/>
+        <!-- 使用 Log4j 输出日志（SQL 语句会打到控制台和日志文件） -->
+        <setting name="logImpl" value="LOG4J"/>
     </settings>
 
     <!-- 类型别名：扫描该包下所有类，用类名（不区分大小写）作为别名，如 User -->
@@ -36,9 +36,10 @@
         </environment>
     </environments>
 
-    <!-- 注册 Mapper 映射文件 -->
+    <!-- 注册 Mapper：XML 方式用 resource 指定文件，注解方式用 class 指定接口 -->
     <mappers>
         <mapper resource="mapper/UserMapper.xml"/>
+        <mapper class="com.demo.mapper.UserMapperAnnotation"/>
     </mappers>
 
 </configuration>
