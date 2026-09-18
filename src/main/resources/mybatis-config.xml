@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- MyBatis 核心配置文件 -->
+<configuration>
+
+    <!-- 引入外部数据库连接配置文件，之后用 ${key} 引用其中的值 -->
+    <properties resource="db.properties"/>
+
+    <!-- 全局设置 -->
+    <settings>
+        <!-- 开启下划线转驼峰：列名 created_at 自动映射到 Java 属性 createdAt -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!-- 使用 Log4j 输出日志（SQL 语句会打到控制台和日志文件） -->
+        <setting name="logImpl" value="LOG4J"/>
+    </settings>
+
+    <!-- 类型别名：扫描该包下所有类，用类名（不区分大小写）作为别名，如 User -->
+    <typeAliases>
+        <package name="com.demo.entity"/>
+    </typeAliases>
+
+    <!-- 环境配置：可配置多个环境，default 指定默认使用哪个 -->
+    <environments default="development">
+        <environment id="development">
+            <!-- 事务管理器：JDBC 表示使用 JDBC 原生的事务提交/回滚 -->
+            <transactionManager type="JDBC"/>
+            <!-- 数据源：POOLED 表示使用内置连接池 -->
+            <dataSource type="POOLED">
+                <property name="driver" value="${driver}"/>
+                <property name="url" value="${url}"/>
+                <property name="username" value="${username}"/>
+                <property name="password" value="${password}"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!-- 注册 Mapper：XML 方式用 resource 指定文件，注解方式用 class 指定接口 -->
+    <mappers>
+        <mapper resource="mapper/UserMapper.xml"/>
+        <mapper class="com.demo.mapper.UserMapperAnnotation"/>
+    </mappers>
+
+</configuration>
