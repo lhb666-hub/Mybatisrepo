@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.demo2.mapper.EmpMapper">
+    <resultMap id="empResultMap" type="Emp">
+        <id property="empno" column="empno"/>
+        <result property="ename" column="ename"/>
+        <result property="job" column="job"/>
+        <result property="mgr" column="mgr"/>
+        <result property="hiredate" column="hiredate"/>
+        <result property="sal" column="sal"/>
+        <result property="comm" column="comm"/>
+        <result property="deptno" column="deptno"/>
+    </resultMap>
+
+    <sql id="empColumns">
+        empno, ename, job, mgr, hiredate, sal, comm, deptno
+    </sql>
+
+    <select id="findAll" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        ORDER BY empno
+    </select>
+
+    <select id="findByEmpno" parameterType="int" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE empno = #{empno}
+    </select>
+
+    <insert id="add" parameterType="Emp">
+        INSERT INTO emp (empno, ename, job, mgr, hiredate, sal, comm, deptno)
+        VALUES (#{empno}, #{ename}, #{job}, #{mgr}, #{hiredate}, #{sal}, #{comm}, #{deptno})
+    </insert>
+
+    <update id="modify" parameterType="Emp">
+        UPDATE emp
+        SET ename = #{ename},
+            job = #{job},
+            mgr = #{mgr},
+            hiredate = #{hiredate},
+            sal = #{sal},
+            comm = #{comm},
+            deptno = #{deptno}
+        WHERE empno = #{empno}
+    </update>
+
+    <delete id="removeByEmpno" parameterType="int">
+        DELETE FROM emp
+        WHERE empno = #{empno}
+    </delete>
+</mapper>
