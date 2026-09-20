@@ -16,9 +16,10 @@
         <setting name="logImpl" value="LOG4J"/>
     </settings>
 
-    <!-- 类型别名：扫描该包下所有类，用类名（不区分大小写）作为别名，如 User -->
+    <!-- 类型别名：扫描实体类包，XML 中可以直接使用类名作为别名 -->
     <typeAliases>
         <package name="com.demo.entity"/>
+        <package name="com.demo2.entity"/>
     </typeAliases>
 
     <!-- 环境配置：可配置多个环境，default 指定默认使用哪个 -->
@@ -39,6 +40,7 @@
     <!-- 注册 Mapper：XML 方式用 resource 指定文件，注解方式用 class 指定接口 -->
     <mappers>
         <mapper resource="mapper/UserMapper.xml"/>
+        <mapper resource="mapper/EmpMapper.xml"/>
         <mapper class="com.demo.mapper.UserMapperAnnotation"/>
     </mappers>
 
