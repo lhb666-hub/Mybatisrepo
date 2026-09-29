@@ -20,14 +20,113 @@
         <result property="deptno" column="deptno"/>
     </resultMap>
 
+    <resultMap id="empWithDeptResultMap" type="Emp">
+        <id property="empno" column="emp_empno"/>
+        <result property="ename" column="emp_ename"/>
+        <result property="job" column="emp_job"/>
+        <result property="mgr" column="emp_mgr"/>
+        <result property="hiredate" column="emp_hiredate"/>
+        <result property="sal" column="emp_sal"/>
+        <result property="comm" column="emp_comm"/>
+        <result property="deptno" column="emp_deptno"/>
+        <association property="dept" javaType="Dept">
+            <id property="deptno" column="dept_deptno"/>
+            <result property="dname" column="dept_dname"/>
+            <result property="loc" column="dept_loc"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="deptPayrollSummaryMap" type="DeptPayrollSummary">
+        <id property="deptno" column="deptno"/>
+        <result property="dname" column="dname"/>
+        <result property="loc" column="loc"/>
+        <result property="employeeCount" column="employee_count"/>
+        <result property="totalSalary" column="total_salary"/>
+        <result property="averageSalary" column="average_salary"/>
+        <result property="maxSalary" column="max_salary"/>
+        <result property="minSalary" column="min_salary"/>
+    </resultMap>
+
+    <resultMap id="empManagerViewMap" type="EmpManagerView">
+        <id property="empno" column="empno"/>
+        <result property="ename" column="ename"/>
+        <result property="job" column="job"/>
+        <result property="sal" column="sal"/>
+        <result property="deptno" column="deptno"/>
+        <result property="dname" column="dname"/>
+        <result property="loc" column="loc"/>
+        <result property="mgr" column="mgr"/>
+        <result property="managerName" column="manager_name"/>
+    </resultMap>
+
     <sql id="empColumns">
         empno, ename, job, mgr, hiredate, sal, comm, deptno
+    </sql>
+
+    <sql id="empDeptJoinColumns">
+        e.empno AS emp_empno,
+        e.ename AS emp_ename,
+        e.job AS emp_job,
+        e.mgr AS emp_mgr,
+        e.hiredate AS emp_hiredate,
+        e.sal AS emp_sal,
+        e.comm AS emp_comm,
+        e.deptno AS emp_deptno,
+        d.deptno AS dept_deptno,
+        d.dname AS dept_dname,
+        d.loc AS dept_loc
     </sql>
 
     <select id="findAll" resultMap="empResultMap">
         SELECT <include refid="empColumns"/>
         FROM emp
         ORDER BY empno
+    </select>
+
+    <select id="findEmployeesWithDept" resultMap="empWithDeptResultMap">
+        SELECT <include refid="empDeptJoinColumns"/>
+        FROM emp e
+                 INNER JOIN dept d ON e.deptno = d.deptno
+        ORDER BY e.empno
+    </select>
+
+    <select id="findEmployeesByDeptLocation" resultMap="empWithDeptResultMap">
+        SELECT <include refid="empDeptJoinColumns"/>
+        FROM emp e
+                 INNER JOIN dept d ON e.deptno = d.deptno
+        WHERE d.loc = #{loc}
+        ORDER BY e.empno
+    </select>
+
+    <select id="summarizeDeptPayroll" resultMap="deptPayrollSummaryMap">
+        SELECT d.deptno,
+               d.dname,
+               d.loc,
+               COUNT(e.empno) AS employee_count,
+               COALESCE(SUM(e.sal), 0) AS total_salary,
+               COALESCE(ROUND(AVG(e.sal), 2), 0) AS average_salary,
+               COALESCE(MAX(e.sal), 0) AS max_salary,
+               COALESCE(MIN(e.sal), 0) AS min_salary
+        FROM dept d
+                 LEFT JOIN emp e ON d.deptno = e.deptno
+        GROUP BY d.deptno, d.dname, d.loc
+        ORDER BY d.deptno
+    </select>
+
+    <select id="findEmployeesWithManagerAndDept" resultMap="empManagerViewMap">
+        SELECT e.empno,
+               e.ename,
+               e.job,
+               e.sal,
+               e.deptno,
+               d.dname,
+               d.loc,
+               e.mgr,
+               m.ename AS manager_name
+        FROM emp e
+                 LEFT JOIN emp m ON e.mgr = m.empno
+                 LEFT JOIN dept d ON e.deptno = d.deptno
+        ORDER BY e.empno
     </select>
 
     <select id="listNameSalaryDept" resultMap="empBriefResultMap">

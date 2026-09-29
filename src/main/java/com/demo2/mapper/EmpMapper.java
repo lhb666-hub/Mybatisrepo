@@ -1,7 +1,9 @@
 package com.demo2.mapper;
 
+import com.demo2.entity.DeptPayrollSummary;
 import com.demo2.entity.Emp;
 import com.demo2.entity.EmpBrief;
+import com.demo2.entity.EmpManagerView;
 import com.demo2.entity.EmpQuery;
 import java.util.Date;
 import java.util.List;
@@ -9,6 +11,14 @@ import org.apache.ibatis.annotations.Param;
 
 public interface EmpMapper {
     List<Emp> findAll();
+
+    List<Emp> findEmployeesWithDept();
+
+    List<Emp> findEmployeesByDeptLocation(@Param("loc") String loc);
+
+    List<DeptPayrollSummary> summarizeDeptPayroll();
+
+    List<EmpManagerView> findEmployeesWithManagerAndDept();
 
     List<EmpBrief> listNameSalaryDept();
 

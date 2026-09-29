@@ -1,7 +1,9 @@
 package com.demo2.mapper;
 
+import com.demo2.entity.DeptPayrollSummary;
 import com.demo2.entity.Emp;
 import com.demo2.entity.EmpBrief;
+import com.demo2.entity.EmpManagerView;
 import com.demo2.entity.EmpQuery;
 import com.demo2.util.MyBatisUtil;
 import java.util.Arrays;
@@ -80,6 +82,30 @@ public class EmpMapperTest {
             Assert.assertNotNull(salaryRange);
             Assert.assertNotNull(noCommissionAndLowSalary);
             Assert.assertNotNull(salaryDesc);
+        }
+    }
+
+    @Test
+    public void multiTableJoinQueriesReturnExpectedData() {
+        try (SqlSession session = MyBatisUtil.openSession()) {
+            EmpMapper mapper = session.getMapper(EmpMapper.class);
+
+            List<Emp> employeesWithDept = mapper.findEmployeesWithDept();
+            Assert.assertFalse(employeesWithDept.isEmpty());
+            Assert.assertNotNull(employeesWithDept.get(0).getDept());
+
+            String location = employeesWithDept.get(0).getDept().getLoc();
+            List<Emp> employeesByLocation = mapper.findEmployeesByDeptLocation(location);
+            Assert.assertFalse(employeesByLocation.isEmpty());
+            Assert.assertEquals(location, employeesByLocation.get(0).getDept().getLoc());
+
+            List<DeptPayrollSummary> summaries = mapper.summarizeDeptPayroll();
+            Assert.assertFalse(summaries.isEmpty());
+            Assert.assertNotNull(summaries.get(0).getDname());
+
+            List<EmpManagerView> managerViews = mapper.findEmployeesWithManagerAndDept();
+            Assert.assertFalse(managerViews.isEmpty());
+            Assert.assertNotNull(managerViews.get(0).getEname());
         }
     }
 
