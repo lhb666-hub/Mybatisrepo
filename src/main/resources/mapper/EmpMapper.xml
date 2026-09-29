@@ -14,6 +14,12 @@
         <result property="deptno" column="deptno"/>
     </resultMap>
 
+    <resultMap id="empBriefResultMap" type="EmpBrief">
+        <result property="ename" column="ename"/>
+        <result property="sal" column="sal"/>
+        <result property="deptno" column="deptno"/>
+    </resultMap>
+
     <sql id="empColumns">
         empno, ename, job, mgr, hiredate, sal, comm, deptno
     </sql>
@@ -21,6 +27,140 @@
     <select id="findAll" resultMap="empResultMap">
         SELECT <include refid="empColumns"/>
         FROM emp
+        ORDER BY empno
+    </select>
+
+    <select id="listNameSalaryDept" resultMap="empBriefResultMap">
+        SELECT ename, sal, deptno
+        FROM emp
+        ORDER BY empno
+    </select>
+
+    <select id="findSalaryAbove" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE sal &gt; #{threshold}
+        ORDER BY empno
+    </select>
+
+    <select id="findInDepartments" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        <choose>
+            <when test="deptnos != null and deptnos.size() &gt; 0">
+                WHERE deptno IN
+                <foreach collection="deptnos" item="deptno" open="(" separator="," close=")">
+                    #{deptno}
+                </foreach>
+            </when>
+            <otherwise>
+                WHERE 1 = 0
+            </otherwise>
+        </choose>
+        ORDER BY empno
+    </select>
+
+    <select id="findJoinedAfter" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE hiredate &gt; #{date}
+        ORDER BY empno
+    </select>
+
+    <select id="findWithCommission" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE comm IS NOT NULL
+        ORDER BY empno
+    </select>
+
+    <select id="findByJob" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE job = #{job}
+        ORDER BY empno
+    </select>
+
+    <select id="findSalaryBetween" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE sal BETWEEN #{low} AND #{high}
+        ORDER BY empno
+    </select>
+
+    <select id="findNoCommissionUnderSalary" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        WHERE comm IS NULL
+          AND sal &lt; #{threshold}
+        ORDER BY empno
+    </select>
+
+    <select id="findAllOrderBySalaryDesc" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        ORDER BY sal DESC
+    </select>
+
+    <select id="findByTaskThreeRules" parameterType="EmpQuery" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        <trim prefix="WHERE" prefixOverrides="AND |OR ">
+            <if test="enameKeyword != null and enameKeyword != ''">
+                AND ename LIKE CONCAT('%', #{enameKeyword}, '%')
+            </if>
+            <if test="jobName != null and jobName != ''">
+                AND job = #{jobName}
+            </if>
+            <if test="deptnos != null and deptnos.size() &gt; 0">
+                AND deptno IN
+                <foreach collection="deptnos" item="deptno" open="(" separator="," close=")">
+                    #{deptno}
+                </foreach>
+            </if>
+            <if test="hiredAfter != null">
+                AND hiredate &gt; #{hiredAfter}
+            </if>
+            <if test="minimumSalary != null">
+                AND sal &gt; #{minimumSalary}
+            </if>
+            <if test="salaryFloor != null">
+                AND sal &gt;= #{salaryFloor}
+            </if>
+            <if test="salaryCeiling != null">
+                AND sal &lt;= #{salaryCeiling}
+            </if>
+            <if test="salaryBelow != null">
+                AND sal &lt; #{salaryBelow}
+            </if>
+            <if test="commissionPresent != null and commissionPresent">
+                AND comm IS NOT NULL
+            </if>
+            <if test="commissionPresent != null and !commissionPresent">
+                AND comm IS NULL
+            </if>
+        </trim>
+        <choose>
+            <when test="salaryDesc != null and salaryDesc">
+                ORDER BY sal DESC
+            </when>
+            <otherwise>
+                ORDER BY empno
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="findByNameOrDept" parameterType="EmpQuery" resultMap="empResultMap">
+        SELECT <include refid="empColumns"/>
+        FROM emp
+        <choose>
+            <when test="exactEname != null and exactEname != ''">
+                WHERE ename = #{exactEname}
+            </when>
+            <when test="fallbackDeptno != null">
+                WHERE deptno = #{fallbackDeptno}
+            </when>
+        </choose>
         ORDER BY empno
     </select>
 
@@ -35,6 +175,15 @@
         VALUES (#{empno}, #{ename}, #{job}, #{mgr}, #{hiredate}, #{sal}, #{comm}, #{deptno})
     </insert>
 
+    <insert id="addMany">
+        INSERT INTO emp (empno, ename, job, mgr, hiredate, sal, comm, deptno)
+        VALUES
+        <foreach collection="emps" item="emp" separator=",">
+            (#{emp.empno}, #{emp.ename}, #{emp.job}, #{emp.mgr},
+             #{emp.hiredate}, #{emp.sal}, #{emp.comm}, #{emp.deptno})
+        </foreach>
+    </insert>
+
     <update id="modify" parameterType="Emp">
         UPDATE emp
         SET ename = #{ename},
@@ -47,8 +196,30 @@
         WHERE empno = #{empno}
     </update>
 
+    <update id="reviseSelective" parameterType="Emp">
+        UPDATE emp
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ename != null">ename = #{ename},</if>
+            <if test="job != null">job = #{job},</if>
+            <if test="mgr != null">mgr = #{mgr},</if>
+            <if test="hiredate != null">hiredate = #{hiredate},</if>
+            <if test="sal != null">sal = #{sal},</if>
+            <if test="comm != null">comm = #{comm},</if>
+            <if test="deptno != null">deptno = #{deptno},</if>
+        </trim>
+        WHERE empno = #{empno}
+    </update>
+
     <delete id="removeByEmpno" parameterType="int">
         DELETE FROM emp
         WHERE empno = #{empno}
+    </delete>
+
+    <delete id="removeManyByEmpno">
+        DELETE FROM emp
+        WHERE empno IN
+        <foreach collection="empnos" item="empno" open="(" separator="," close=")">
+            #{empno}
+        </foreach>
     </delete>
 </mapper>
