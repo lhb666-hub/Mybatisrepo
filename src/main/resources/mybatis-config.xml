@@ -16,9 +16,8 @@
         <setting name="logImpl" value="LOG4J"/>
     </settings>
 
-    <!-- 类型别名：扫描实体类包，XML 中可以直接使用类名作为别名 -->
+    <!-- 类型别名：扫描当前实验使用的实体类包 -->
     <typeAliases>
-        <package name="com.demo.entity"/>
         <package name="com.demo2.entity"/>
     </typeAliases>
 
@@ -37,11 +36,9 @@
         </environment>
     </environments>
 
-    <!-- 注册 Mapper：XML 方式用 resource 指定文件，注解方式用 class 指定接口 -->
+    <!-- 注册当前实验使用的 Mapper XML -->
     <mappers>
-        <mapper resource="mapper/UserMapper.xml"/>
         <mapper resource="mapper/EmpMapper.xml"/>
-        <mapper class="com.demo.mapper.UserMapperAnnotation"/>
     </mappers>
 
 </configuration>
